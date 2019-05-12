@@ -11,5 +11,5 @@ for i in range(len(unknown)):
     obs.append(unknown[i])
     # unknown.remove(unknown[i])
 
-    waypoints =  pathfinder.findShortPath(10,[0,0],[1,9],obs)
+    waypoints =  pathfinder.findShortPath(10,[0,i],[1,9],obs)
 # print waypoints

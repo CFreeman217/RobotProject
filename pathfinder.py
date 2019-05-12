@@ -19,35 +19,6 @@ unknown_input_obs = []
 # # Position of goal location
 # goal_pos = (19.0,1.0)
 
-# # def get_obs(bounds, num, goal):
-# #     '''
-# #     Generates a random map of obstacles for the map provided.
-
-# #     Inputs:
-# #     bounds: Lower left and upper right coordinate pairs [(xmin, ymin), (xmax, ymax)] as tuples
-# #         map boundaries
-# #     num: (integer) number of obstacles to generate
-# #     goal: (xgoal, ygoal) goal location that cannot have an obstacle over it
-# #     '''
-# #     obs_list = []
-# #     boundMin_x = bounds[0][0]
-# #     boundMin_y = bounds[0][1]
-# #     boundMax_x = bounds[1][0]
-# #     boundMax_y = bounds[1][1]
-# #     for i in range(num):
-# #         genx = float(random.randint(boundMin_x, boundMax_x))
-# #         geny = float(random.randint(boundMin_y, boundMax_y))
-# #         while (genx, geny) in obs_list:
-# #             genx = float(random.randint(boundMin_x, boundMax_x))
-# #             geny = float(random.randint(boundMin_y, boundMax_y))
-# #         if (genx, geny) == goal:
-# #             continue
-# #         else:
-# #             obs_list.append((genx, geny))
-# #     return obs_list
-
-# # # obstacles = get_obs(map_size, 35, goal_pos)
-
 # obstacles = [(1.0,1.0),
 #              (4.0,4.0),
 #              (3.0,4.0),
@@ -189,7 +160,6 @@ class PATHFIND:
             self.node_index = PATHFIND.num_nodes
             self.visited = False
             PATHFIND.map_nodes[PATHFIND.num_nodes] = self
-            # print 'NODE {} GENERATED'.format(self.node_index)
         else:
             print '__init__ : new node creation attempt for invalid point at ({:1.2f},{:1.2f})'.format(x_coord, y_coord)
         
@@ -219,8 +189,6 @@ class PATHFIND:
         d = other.yloc
         return((abs(c - a)**2 + abs(d - b)**2)**0.5)
 
-
-
     def valid_check(self, x_val, y_val):
         '''
         Checks to see if the given coordinates are valid for the map boundaries and obstacle layout.
@@ -235,8 +203,6 @@ class PATHFIND:
         else:
             print 'valid_check : ({:1.2f},{:1.2f}) outside map bounds'.format(x_val, y_val)
             return False
-
-
 
     def get_neighbors(self):
         cur_x = self.xloc
@@ -262,7 +228,6 @@ class PATHFIND:
         # print neighbor_list
         return neighbor_list
 
-
     def get_costs(self, neighbors, a_star=False):
         prices = []
         for node in neighbors:
@@ -283,8 +248,6 @@ class PATHFIND:
     def set_cost(self, parent_node, price):
         self.parent = parent_node.node_index
         self.cost += price
-
-
 
     @classmethod
     def set_map(cls, coords, blk_size=1.0, discrete=False):
@@ -369,8 +332,6 @@ class PATHFIND:
         This scheme does not need to have an established node at the end location,
         the end goal locaiton just needs to be stored in the class.
         '''
-
-        
         node = cls.coords_to_index(coords)
         if node:
             if cls.end_goal != 0:
@@ -385,17 +346,17 @@ class PATHFIND:
         Sets start position and establishes a node at the origin.
         '''
         node = cls.coords_to_index(coords)
+        cls.start_loc = coords
         if node:
             if cls.start_node_index > 0:
                 cls.map_nodes[cls.start_node_index].start_node = False
+                cls.map_nodes[cls.start_node_index].visited = False
             cls.map_nodes[node].start_node = True
             cls.map_nodes[node].visited = True
             cls.start_node_index = node
         else:
             cls(coords[0],coords[1], start=True)
-        cls.start_loc = coords
         
-
     @classmethod
     def draw_map(cls, title='Untitled', astar=False):
         '''
@@ -407,8 +368,6 @@ class PATHFIND:
         if not astar: cls.draw_obstacles()
         # Start position
         cls.draw_circ(cls.start_loc, 0.2, '#336633')
-        # End position
-        
         path_nodes = [i[0] for i in cls.pathway]
         for node in cls.map_nodes.values():
             if astar:
@@ -425,10 +384,9 @@ class PATHFIND:
 
                 else:
                     plt.scatter(node.xloc, node.yloc, color='b')
-                # plt.pause(0.05)
-                # i_num += 1.0
             else:
                 plt.scatter(node.xloc, node.yloc, color='#000000')
+        # Draw End Position
         cls.draw_circ(cls.end_goal, 0.2, '#CC0000')
         for key, point in enumerate(cls.best_path[:-1]):
             lin_x = [point[0], cls.best_path[key+1][0]]
@@ -531,8 +489,6 @@ class PATHFIND:
         # We still need to add the start node coordinates so the plotting system works.
         # This is also to get the robot to find the first generated node from the start.
         cls.best_path.append(current_node.coordinates)
-        # print cls.best_path
-        # plt.show()
         return cls.best_path[::-1]
     
     @classmethod
@@ -544,11 +500,8 @@ class PATHFIND:
             if node.start_node == False:
                 node.cost = 0.0
                 node.visited = False
-                
             else:
                 c_node = node
-                # print 'Starting At Node : {}'.format(node.node_index)
-        # cls.draw_map('Running Astar ... ', astar=True)
         while c_node.goal_node == False:
             adj_nodes = c_node.get_neighbors()
             adj_costs = c_node.get_costs(adj_nodes, a_star=True)
@@ -560,29 +513,17 @@ class PATHFIND:
                         cls.pathway.pop(index)
             
             best_choice = min(cls.pathway, key = lambda x: x[1])
-            
             # cls.update_map()
             c_node.visited = True
-
-
             c_node = cls.map_nodes[best_choice[0]]
         
         while c_node.start_node == False:
-            
             cls.best_path.append((c_node.xloc, c_node.yloc))
-            # print 'NODE {} ADDED: ({},{}), PARENT: {}'.format(c_node.node_index, c_node.xloc, c_node.yloc, c_node.parent)
             c_node = cls.map_nodes[c_node.parent]
         
         cls.best_path.append((c_node.xloc, c_node.yloc))
         cls.draw_map('Astar Pathfinding Method', astar=True)
-        # plt.show()
         return cls.best_path
-        # linexs = [i[0] for i in cls.best_path]
-        # lineys = [i[1] for i in cls.best_path]
-        # plt.plot(linexs, lineys, '--', color='b', linewidth=2)
-        # plt.title('ProjectPlot \n Distance = {:1.2f}'.format(cls.map_nodes[cls.coords_to_index((cls.best_path[0][0],cls.best_path[0][1]))].cost))
-
-        # # plt.savefig('./log_files/HW5_prob6.png', bbox_inches='tight')
     
     @classmethod
     def nearest_node(cls, coords):
@@ -602,7 +543,6 @@ class PATHFIND:
         for node in cls.map_nodes.values():
             dists.append((node.node_index, node.distance(coords)))
         nearest = min(dists, key = lambda x : x[1][0])
-        # print 'Nearest Node Selected: {}'.format(nearest)
         return nearest
 
     @classmethod
@@ -629,19 +569,6 @@ class PATHFIND:
                 cls.draw_circ((x_new, y_new), cir_color='#CCCCCC')
                 plt.pause(0.05)
         
-
-# hidden_obs = [(10.0,18.0)]
-
-# PATHFIND.set_map(map_size, discrete=True)
-# PATHFIND.load_obstacles(obstacles)
-# PATHFIND.load_obstacles(hidden_obs, hidden=True)
-# PATHFIND.set_goal(goal_pos)
-# PATHFIND.set_start(start_pos)
-# # PATHFIND.draw_map('stuff', astar=True)
-# PATHFIND.run_astar()
-# plt.show()
-# PATHFIND.run_RRT(1.0, animate=True)
-
 def get_rrt_path(step=1.0, ani=True):
     nodes = PATHFIND.run_RRT(step, animate=ani)
     PATHFIND.draw_map('Rapidly Exploring Random Trees (RRT)')
@@ -653,26 +580,20 @@ def get_rrt_path(step=1.0, ani=True):
     plt.show()
     return nodes
 
-
 def send_map_info_for_plot(bounds, known_obs, unknown_obs):
-    # print 'Map Info Received'
     map_size = [(0.0,0.0), (bounds, bounds)]
     PATHFIND.set_map(map_size, discrete=True)
-    # print 'Map Generated'
     for obs in known_obs:
         x_coord = float(obs[0])
         y_coord = float(obs[1])
         obstacles.append((x_coord, y_coord))
     PATHFIND.load_obstacles(obstacles, known=True)
-    # print 'Obstacles Created'
     for obst in unknown_obs:
     
         x_coord = float(obst[0])
         y_coord = float(obst[1])
         unknown_input_obs.append((x_coord, y_coord))
     PATHFIND.load_obstacles(unknown_input_obs, hidden=True)
-
-
 
 
 def findShortPath(bounds, start, goal, obs):
@@ -683,12 +604,10 @@ def findShortPath(bounds, start, goal, obs):
         figName = get_filename('proj_prelim', '.png', './log_files/')
         plt.savefig(figName, bbox_inches='tight')
         plt.show()
-    # print 'Goals Set'
     for item in obs:
         new_format = (float(item[0]), float(item[1]))
         if new_format in unknown_input_obs:
             PATHFIND.load_obstacles([new_format], known=False, hidden=False)
-            # print 'New Obstacle Found'
     waypoints = PATHFIND.run_astar()
     plt.title('Map Number: {}'.format(PATHFIND.map_num))
     figName = get_filename('proj_map_{}'.format(PATHFIND.map_num), '.png', './log_files/')
@@ -696,14 +615,3 @@ def findShortPath(bounds, start, goal, obs):
     plt.show()
     PATHFIND.map_num += 1
     return waypoints
-
-# unknown = [(0,3),(2,3),(2,4)]
-
-# obs = [(1,1), (4,4), (3,4), (5,0), (5,1), (0,7), (1,7), (2,7), (3,7)]
-# #waypoints =  RRT_hw.RRT([10,10],[0,0],[1,9],[[1,1], [4,4], [3,4], [5,0], [5,1], [0,7], [1,7], [2,7], [3,7]])
-# send_map_info_for_plot(10, obs, unknown)
-# waypoints =  findShortPath(10,[0,0],[1,9],obs)
-
-# print waypoints
-# get_rrt_path(1.0)
-# optim1(1.0)
