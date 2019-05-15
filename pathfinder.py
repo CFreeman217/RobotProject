@@ -604,6 +604,7 @@ def findShortPath(bounds, start, goal, obs):
         figName = get_filename('proj_prelim', '.png', './log_files/')
         plt.savefig(figName, bbox_inches='tight')
         plt.show()
+       
     for item in obs:
         new_format = (float(item[0]), float(item[1]))
         if new_format in unknown_input_obs:
@@ -613,5 +614,6 @@ def findShortPath(bounds, start, goal, obs):
     figName = get_filename('proj_map_{}'.format(PATHFIND.map_num), '.png', './log_files/')
     plt.savefig(figName, bbox_inches='tight')
     plt.show()
+ 
     PATHFIND.map_num += 1
-    return waypoints
+    return waypoints[::-1]
